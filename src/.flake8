@@ -1,0 +1,7 @@
+[flake8]
+extend-ignore = E501,W503
+extend-select = E504
+exclude =
+    __pycache__,
+    dasenv/
+    
