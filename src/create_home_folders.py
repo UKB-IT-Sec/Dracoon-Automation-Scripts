@@ -23,6 +23,9 @@ import asyncio
 
 from pathlib import Path
 from helper.dracoon_auth import connect_to_cloud, disconnect
+from helper.logging import setup_logging
+from helper.groups import list_groups, list_users_of_group,\
+    get_user_ids_of_group
 
 PROGRAM_NAME = 'Create Home Folders'
 PROGRAM_VERSION = '0.0.1'
@@ -38,20 +41,6 @@ def _setup_argparser():
     return parser.parse_args()
 
 
-def _setup_logging(args, config):
-    log_level = getattr(logging, config['Logging']['logLevel'], 'INFO')
-    log_format = logging.Formatter(fmt='[%(asctime)s][%(module)s][%(levelname)s]: %(message)s', datefmt='%Y-%m-%d %H:%M:%S')
-
-    logger = logging.getLogger('')
-    if args.debug:
-        logger.setLevel(logging.DEBUG)
-    else:
-        logger.setLevel(log_level)
-    console_logger = logging.StreamHandler()
-    console_logger.setFormatter(log_format)
-    logger.addHandler(console_logger)
-
-
 def _load_config(config_file):
     config = configparser.ConfigParser()
     config_file = Path(config_file)
@@ -62,15 +51,19 @@ def _load_config(config_file):
         config['Logging']['logLevel'] = args.log_level
     return config
 
+
 async def _create_home_folders(conf):
     cloud = await connect_to_cloud(config)
-    logging.debug('back in main')
+
+    user_ids = await get_user_ids_of_group(cloud, config['userManagement']['userGroupId'])
+    print(user_ids)
+    
     await disconnect(cloud)
 
 if __name__ == '__main__':
     args = _setup_argparser()
     config = _load_config(args.config_file)
-    _setup_logging(args, config)
+    setup_logging(args, config)
     
     asyncio.run(_create_home_folders(config))
 

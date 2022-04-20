@@ -13,20 +13,6 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 '''
-import logging
 import asyncio
-from dracoon import DRACOON, OAuth2ConnectionType
 
 
-async def connect_to_cloud(config):
-    logging.info('connecting: {}'.format(config['basic']['dracoonCloudInstance']))
-    cloud = DRACOON(base_url=config['basic']['dracoonCloudInstance'], client_id=config['basic']['appID'], client_secret=config['basic']['secret'])
-
-    await cloud.connect(OAuth2ConnectionType.password_flow, config['basic']['user'], config['basic']['password'])
-
-    return cloud
-
-
-async def disconnect(cloud):
-    logging.info('disconnecting: {}'.format(cloud.settings.dracoon.base_url))
-    await cloud.logout()

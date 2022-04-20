@@ -1,2 +1,5 @@
 dracoon
 flake8
+pytest
+pytest-cov
+pytest-flake8

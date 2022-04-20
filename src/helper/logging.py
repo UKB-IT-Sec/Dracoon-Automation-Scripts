@@ -14,19 +14,17 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 '''
 import logging
-import asyncio
-from dracoon import DRACOON, OAuth2ConnectionType
 
 
-async def connect_to_cloud(config):
-    logging.info('connecting: {}'.format(config['basic']['dracoonCloudInstance']))
-    cloud = DRACOON(base_url=config['basic']['dracoonCloudInstance'], client_id=config['basic']['appID'], client_secret=config['basic']['secret'])
+def setup_logging(args, config):
+    log_level = getattr(logging, config['Logging']['logLevel'], 'INFO')
+    log_format = logging.Formatter(fmt='[%(asctime)s][%(module)s][%(levelname)s]: %(message)s', datefmt='%Y-%m-%d %H:%M:%S')
 
-    await cloud.connect(OAuth2ConnectionType.password_flow, config['basic']['user'], config['basic']['password'])
-
-    return cloud
-
-
-async def disconnect(cloud):
-    logging.info('disconnecting: {}'.format(cloud.settings.dracoon.base_url))
-    await cloud.logout()
+    logger = logging.getLogger('')
+    if args.debug:
+        logger.setLevel(logging.DEBUG)
+    else:
+        logger.setLevel(log_level)
+    console_logger = logging.StreamHandler()
+    console_logger.setFormatter(log_format)
+    logger.addHandler(console_logger)
