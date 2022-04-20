@@ -16,5 +16,5 @@
 
 
 def normalize_username(name):
-    name = name.split('/')[-1].split('@')[0]
+    name = name.split('\\')[-1].split('@')[0]
     return name

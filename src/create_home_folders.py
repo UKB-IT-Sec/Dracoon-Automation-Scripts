@@ -24,8 +24,7 @@ import asyncio
 from pathlib import Path
 from helper.dracoon_auth import connect_to_cloud, disconnect
 from helper.logging import setup_logging
-from helper.groups import list_groups, list_users_of_group,\
-    get_user_ids_of_group
+from helper.rooms import get_users_without_personal_rooms, create_personal_rooms
 
 PROGRAM_NAME = 'Create Home Folders'
 PROGRAM_VERSION = '0.0.1'
@@ -55,8 +54,12 @@ def _load_config(config_file):
 async def _create_home_folders(conf):
     cloud = await connect_to_cloud(config)
 
-    user_ids = await get_user_ids_of_group(cloud, config['userManagement']['userGroupId'])
-    print(user_ids)
+    users = await cloud.groups.get_group_users(int(config['userManagement']['userGroupId']))
+    users_without_rooms = await get_users_without_personal_rooms(cloud, config['userManagement']['homeRootRoomNode'], users)
+    
+    logging.info('{} of {} users need new rooms'.format(len(users_without_rooms), len(users.items)))
+    
+    await create_personal_rooms(cloud, config['userManagement']['homeRootRoomNode'], users_without_rooms)
     
     await disconnect(cloud)
 
