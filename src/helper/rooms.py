@@ -14,7 +14,7 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 '''
 import logging
-import asyncio
+import asyncio  # noqa: F401
 from helper.normalizer import normalize_username
 
 TEN_GB = 1024*1024*1024*10
@@ -27,6 +27,7 @@ async def get_room_names(cloud, root_room_id):
         room_names.add(room.name)
     return room_names
 
+
 async def get_users_without_personal_rooms(cloud, root_room_id, users):
     rooms = await get_room_names(cloud, root_room_id)
     users_without_room = list()
@@ -36,9 +37,11 @@ async def get_users_without_personal_rooms(cloud, root_room_id, users):
             logging.debug('{} ({}) has no room'.format(user.userInfo.userName, user.userInfo.id))
     return users_without_room
 
+
 async def create_mail_attachment_folder(cloud, personal_room_id):
     folder_definition = cloud.nodes.make_folder(name='Outlook', parent_id=personal_room_id)
     await cloud.nodes.create_folder(folder_definition)
+
 
 async def create_personal_rooms(cloud, root_room_id, users, quota=TEN_GB, recycle_bin_period=30):
     for user in users:

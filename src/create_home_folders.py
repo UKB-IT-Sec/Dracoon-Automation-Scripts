@@ -17,17 +17,16 @@
 
 import argparse
 import logging
-import configparser
 import sys
 import asyncio
 
-from pathlib import Path
 from helper.dracoon_auth import connect_to_cloud, disconnect
 from helper.logging import setup_logging
 from helper.rooms import get_users_without_personal_rooms, create_personal_rooms
+from helper.config import load_config
 
 PROGRAM_NAME = 'Create Home Folders'
-PROGRAM_VERSION = '0.0.1'
+PROGRAM_VERSION = '0.0.2'
 PROGRAM_DESCRIPTION = 'create home folders'
 
 
@@ -40,34 +39,24 @@ def _setup_argparser():
     return parser.parse_args()
 
 
-def _load_config(config_file):
-    config = configparser.ConfigParser()
-    config_file = Path(config_file)
-    if not config_file.exists():
-        sys.exit('config file not found: {}'.format(config_file))
-    config.read(config_file)
-    if args.log_level is not None:
-        config['Logging']['logLevel'] = args.log_level
-    return config
-
-
 async def _create_home_folders(conf):
     cloud = await connect_to_cloud(config)
 
     users = await cloud.groups.get_group_users(int(config['userManagement']['userGroupId']))
     users_without_rooms = await get_users_without_personal_rooms(cloud, config['userManagement']['homeRootRoomNode'], users)
-    
+
     logging.info('{} of {} users need new rooms'.format(len(users_without_rooms), len(users.items)))
-    
+
     await create_personal_rooms(cloud, config['userManagement']['homeRootRoomNode'], users_without_rooms)
-    
+
     await disconnect(cloud)
+
 
 if __name__ == '__main__':
     args = _setup_argparser()
-    config = _load_config(args.config_file)
+    config = load_config(args.config_file, log_level_overwrite=args.log_level)
     setup_logging(args, config)
-    
+
     asyncio.run(_create_home_folders(config))
 
     sys.exit()
