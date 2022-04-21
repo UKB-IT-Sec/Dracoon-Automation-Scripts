@@ -3,3 +3,7 @@ flake8
 pytest
 pytest-cov
 pytest-flake8
+wheel
+setuptools
+git+https://github.com/fkie-cad/common_helper_files.git
+git+https://github.com/fkie-cad/common_helper_process.git

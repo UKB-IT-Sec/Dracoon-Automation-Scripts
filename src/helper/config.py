@@ -13,20 +13,18 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 '''
-import logging
-import asyncio  # noqa: F401
-from dracoon import DRACOON, OAuth2ConnectionType
+import configparser
+import sys
+
+from pathlib import Path
 
 
-async def connect_to_cloud(config):
-    logging.info('connecting: {}'.format(config['basic']['dracoonCloudInstance']))
-    cloud = DRACOON(base_url=config['basic']['dracoonCloudInstance'], client_id=config['basic']['appID'], client_secret=config['basic']['secret'])
-
-    await cloud.connect(OAuth2ConnectionType.password_flow, config['basic']['user'], config['basic']['password'])
-
-    return cloud
-
-
-async def disconnect(cloud):
-    logging.info('disconnecting: {}'.format(cloud.settings.dracoon.base_url))
-    await cloud.logout()
+def load_config(config_file, log_level_overwrite=None):
+    config = configparser.ConfigParser()
+    config_file = Path(config_file)
+    if not config_file.exists():
+        sys.exit('config file not found: {}'.format(config_file))
+    config.read(config_file)
+    if log_level_overwrite is not None:
+        config['Logging']['logLevel'] = log_level_overwrite
+    return config
