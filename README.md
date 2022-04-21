@@ -18,6 +18,6 @@ pip3 install -r requirements.txt
 
 ### Requirements create_home_folder.py
 
-1. automation user needs to be group manager privilege
+1. automation user needs group manager privilege
 2. create a home folder and copy its node id to "homeRootRoomNode" in your config file
 3. automation user needs room administrator privilege for home folder

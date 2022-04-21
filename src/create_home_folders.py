@@ -26,8 +26,8 @@ from helper.rooms import get_users_without_personal_rooms, create_personal_rooms
 from helper.config import load_config
 
 PROGRAM_NAME = 'Create Home Folders'
-PROGRAM_VERSION = '0.0.2'
-PROGRAM_DESCRIPTION = 'create home folders'
+PROGRAM_VERSION = '0.1.0'
+PROGRAM_DESCRIPTION = 'create home rooms for members of a certain group'
 
 
 def _setup_argparser():
