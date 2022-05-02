@@ -15,13 +15,18 @@
 '''
 import logging
 import asyncio  # noqa: F401
+import sys
 from helper.normalizer import normalize_username
 
 TEN_GB = 1024*1024*1024*10
 
 
 async def get_room_names(cloud, root_room_id):
-    rooms = await cloud.nodes.get_nodes(room_manager=True, parent_id=int(root_room_id))
+    try:
+        rooms = await cloud.nodes.get_nodes(room_manager=True, parent_id=int(root_room_id))
+    except Exception as err:
+        logging.critical('Could not get rooms in {}: {}'.format(root_room_id, err))
+        sys.exit('critical error')
     room_names = set()
     for room in rooms.items:
         room_names.add(room.name)
@@ -40,7 +45,10 @@ async def get_users_without_personal_rooms(cloud, root_room_id, users):
 
 async def create_mail_attachment_folder(cloud, personal_room_id):
     folder_definition = cloud.nodes.make_folder(name='Outlook', parent_id=personal_room_id)
-    await cloud.nodes.create_folder(folder_definition)
+    try:
+        await cloud.nodes.create_folder(folder_definition)
+    except Exception as err:
+        logging.error('Could not create mail folder {}: {}'.format(personal_room_id, err))
 
 
 async def create_personal_rooms(cloud, root_room_id, users, quota=TEN_GB, recycle_bin_period=30):
@@ -54,5 +62,8 @@ async def create_personal_rooms(cloud, root_room_id, users, quota=TEN_GB, recycl
             recycle_bin_period=recycle_bin_period)
         logging.debug(room_definition)
         logging.info('creating room for {}'.format(user.userInfo.userName))
-        user_room = await cloud.nodes.create_room(room_definition)
+        try:
+            user_room = await cloud.nodes.create_room(room_definition)
+        except Exception as err:
+            logging.error('Could not create personal rooms for {}: {}'.format(user.userInfo.userName, err))
         await create_mail_attachment_folder(cloud, user_room.id)

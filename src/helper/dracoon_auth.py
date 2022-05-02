@@ -15,18 +15,24 @@
 '''
 import logging
 import asyncio  # noqa: F401
+import sys
 from dracoon import DRACOON, OAuth2ConnectionType
 
 
 async def connect_to_cloud(config):
     logging.info('connecting: {}'.format(config['basic']['dracoonCloudInstance']))
     cloud = DRACOON(base_url=config['basic']['dracoonCloudInstance'], client_id=config['basic']['appID'], client_secret=config['basic']['secret'])
-
-    await cloud.connect(OAuth2ConnectionType.password_flow, config['basic']['user'], config['basic']['password'])
-
+    try:
+        await cloud.connect(OAuth2ConnectionType.password_flow, config['basic']['user'], config['basic']['password'])
+    except Exception as err:
+        logging.critical('Could not connect to {}: {}'.format(config['basic']['dracoonCloudInstance'], err))
+        sys.exit('critical error')
     return cloud
 
 
 async def disconnect(cloud):
     logging.info('disconnecting: {}'.format(cloud.settings.dracoon.base_url))
-    await cloud.logout()
+    try:
+        await cloud.logout()
+    except Exception as err:
+        logging.warning('Clean logout failed: {}'.format(err))
