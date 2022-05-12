@@ -27,7 +27,7 @@ from helper.logging import setup_logging
 from helper.config import load_config
 
 PROGRAM_NAME = 'Inactive Users'
-PROGRAM_VERSION = '0.0.1'
+PROGRAM_VERSION = '0.0.2'
 PROGRAM_DESCRIPTION = 'list inactive users'
 
 
@@ -40,6 +40,7 @@ def _setup_argparser():
     parser.add_argument('-D', '--day_threshold', help='inactivity of this many days [default: 365]', default='365')
     return parser.parse_args()
 
+
 def is_inactive(last_login_date, day_threshold):
     try:
         if (datetime.now(timezone.utc) - last_login_date).days > day_threshold:
@@ -51,17 +52,17 @@ def is_inactive(last_login_date, day_threshold):
 
 async def _list_inactive_users(config, day_threshold):
     cloud = await connect_to_cloud(config)
-    
+
     all_users = await cloud.users.get_users()
-    
+
     inactive_users = list()
-    
+
     for user in all_users.items:
         if is_inactive(user.lastLoginSuccessAt, day_threshold):
             inactive_users.append('{}: {}'.format(user.lastLoginSuccessAt, user.userName))
-            
+
     await disconnect(cloud)
-    
+
     inactive_users.sort()
     logging.info('{} inactive users found'.format(len(inactive_users)))
     for user in inactive_users:
