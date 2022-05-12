@@ -49,7 +49,7 @@ def is_inactive(last_login_date, day_threshold):
     return False
 
 
-async def _list_inactive_users(config):
+async def _list_inactive_users(config, day_threshold):
     cloud = await connect_to_cloud(config)
     
     all_users = await cloud.users.get_users()
@@ -57,7 +57,7 @@ async def _list_inactive_users(config):
     inactive_users = list()
     
     for user in all_users.items:
-        if is_inactive(user.lastLoginSuccessAt, 365):
+        if is_inactive(user.lastLoginSuccessAt, day_threshold):
             inactive_users.append('{}: {}'.format(user.lastLoginSuccessAt, user.userName))
             
     await disconnect(cloud)
@@ -73,6 +73,6 @@ if __name__ == '__main__':
     config = load_config(args.config_file, log_level_overwrite=args.log_level)
     setup_logging(args, config)
 
-    asyncio.run(_list_inactive_users(config))
+    asyncio.run(_list_inactive_users(config, int(args.day_threshold)))
 
     sys.exit()
