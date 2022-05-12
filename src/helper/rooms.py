@@ -16,9 +16,6 @@
 import logging
 import asyncio  # noqa: F401
 import sys
-from helper.normalizer import normalize_username
-
-TEN_GB = 1024*1024*1024*10
 
 
 async def get_room_names(cloud, root_room_id):
@@ -31,39 +28,3 @@ async def get_room_names(cloud, root_room_id):
     for room in rooms.items:
         room_names.add(room.name)
     return room_names
-
-
-async def get_users_without_personal_rooms(cloud, root_room_id, users):
-    rooms = await get_room_names(cloud, root_room_id)
-    users_without_room = list()
-    for user in users.items:
-        if normalize_username(user.userInfo.userName) not in rooms:
-            users_without_room.append(user)
-            logging.debug('{} ({}) has no room'.format(user.userInfo.userName, user.userInfo.id))
-    return users_without_room
-
-
-async def create_mail_attachment_folder(cloud, personal_room_id):
-    folder_definition = cloud.nodes.make_folder(name='Outlook', parent_id=personal_room_id)
-    try:
-        await cloud.nodes.create_folder(folder_definition)
-    except Exception as err:
-        logging.error('Could not create mail folder {}: {}'.format(personal_room_id, err))
-
-
-async def create_personal_rooms(cloud, root_room_id, users, quota=TEN_GB, recycle_bin_period=30):
-    for user in users:
-        room_definition = cloud.nodes.make_room(
-            name=normalize_username(user.userInfo.userName),
-            admin_ids=[cloud.user_info.id, user.userInfo.id],
-            inherit_perms=False,
-            parent_id=root_room_id,
-            quota=quota,
-            recycle_bin_period=recycle_bin_period)
-        logging.debug(room_definition)
-        logging.info('creating room for {}'.format(user.userInfo.userName))
-        try:
-            user_room = await cloud.nodes.create_room(room_definition)
-        except Exception as err:
-            logging.error('Could not create personal rooms for {}: {}'.format(user.userInfo.userName, err))
-        await create_mail_attachment_folder(cloud, user_room.id)
