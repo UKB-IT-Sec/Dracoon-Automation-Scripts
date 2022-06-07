@@ -20,14 +20,15 @@ import logging
 import sys
 import asyncio
 
+from datetime import datetime, timezone
+
 from helper.dracoon_auth import connect_to_cloud, disconnect
 from helper.logging import setup_logging
-from modules.personal_rooms import get_users_without_personal_rooms, create_personal_rooms
 from helper.config import load_config
 
-PROGRAM_NAME = 'Create Home Folders'
-PROGRAM_VERSION = '0.1.0'
-PROGRAM_DESCRIPTION = 'create home rooms for members of a certain group'
+PROGRAM_NAME = 'Inactive Users'
+PROGRAM_VERSION = '0.0.2'
+PROGRAM_DESCRIPTION = 'list inactive users'
 
 
 def _setup_argparser():
@@ -36,20 +37,36 @@ def _setup_argparser():
     parser.add_argument('-L', '--log_level', help='define the log level', choices=['DEBUG', 'INFO', 'WARNING', 'ERROR'], default=None)
     parser.add_argument('-V', '--version', action='version', version='{} {}'.format(PROGRAM_NAME, PROGRAM_VERSION))
     parser.add_argument('-d', '--debug', action='store_true', default=False, help='print debug messages')
+    parser.add_argument('-D', '--day_threshold', help='inactivity of this many days [default: 365]', default='365')
     return parser.parse_args()
 
 
-async def _create_home_folders(conf):
+def is_inactive(last_login_date, day_threshold):
+    try:
+        if (datetime.now(timezone.utc) - last_login_date).days > day_threshold:
+            return True
+    except TypeError:
+        return True
+    return False
+
+
+async def _list_inactive_users(config, day_threshold):
     cloud = await connect_to_cloud(config)
 
-    users = await cloud.groups.get_group_users(int(config['userManagement']['userGroupId']))
-    users_without_rooms = await get_users_without_personal_rooms(cloud, config['userManagement']['homeRootRoomNode'], users)
+    all_users = await cloud.users.get_users()
 
-    logging.info('{} of {} users need new rooms'.format(len(users_without_rooms), len(users.items)))
+    inactive_users = list()
 
-    await create_personal_rooms(cloud, config['userManagement']['homeRootRoomNode'], users_without_rooms)
+    for user in all_users.items:
+        if is_inactive(user.lastLoginSuccessAt, day_threshold):
+            inactive_users.append('{}: {}'.format(user.lastLoginSuccessAt, user.userName))
 
     await disconnect(cloud)
+
+    inactive_users.sort()
+    logging.info('{} inactive users found'.format(len(inactive_users)))
+    for user in inactive_users:
+        print(user)
 
 
 if __name__ == '__main__':
@@ -57,6 +74,6 @@ if __name__ == '__main__':
     config = load_config(args.config_file, log_level_overwrite=args.log_level)
     setup_logging(args, config)
 
-    asyncio.run(_create_home_folders(config))
+    asyncio.run(_list_inactive_users(config, int(args.day_threshold)))
 
     sys.exit()
