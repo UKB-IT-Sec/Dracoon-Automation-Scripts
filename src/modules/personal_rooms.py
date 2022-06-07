@@ -55,4 +55,5 @@ async def create_personal_rooms(cloud, root_room_id, users, quota=TEN_GB, recycl
             user_room = await cloud.nodes.create_room(room_definition)
         except Exception as err:
             logging.error('Could not create personal rooms for {}: {}'.format(user.userInfo.userName, err))
-        await create_mail_attachment_folder(cloud, user_room.id)
+        else:
+            await create_mail_attachment_folder(cloud, user_room.id)
