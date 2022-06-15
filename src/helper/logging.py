@@ -29,12 +29,12 @@ def setup_logging(args, config):
         logger.setLevel(logging.DEBUG)
     else:
         logger.setLevel(log_level)
-    
+
     if not args.silent:
         console_logger = logging.StreamHandler()
         console_logger.setFormatter(log_format)
         logger.addHandler(console_logger)
-    
+
     try:
         log_file = config['Logging']['logFile']
     except Exception:
