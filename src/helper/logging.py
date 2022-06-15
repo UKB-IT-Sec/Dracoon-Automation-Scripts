@@ -17,7 +17,11 @@ import logging
 
 
 def setup_logging(args, config):
-    log_level = getattr(logging, config['Logging']['logLevel'], 'INFO')
+    try:
+        log_level = config['Logging']['logLevel']
+    except Exception:
+        logging.error('no log level set in config')
+        log_level = "INFO"
     log_format = logging.Formatter(fmt='[%(asctime)s][%(module)s][%(levelname)s]: %(message)s', datefmt='%Y-%m-%d %H:%M:%S')
 
     logger = logging.getLogger('')
@@ -25,6 +29,18 @@ def setup_logging(args, config):
         logger.setLevel(logging.DEBUG)
     else:
         logger.setLevel(log_level)
-    console_logger = logging.StreamHandler()
-    console_logger.setFormatter(log_format)
-    logger.addHandler(console_logger)
+    
+    if not args.silent:
+        console_logger = logging.StreamHandler()
+        console_logger.setFormatter(log_format)
+        logger.addHandler(console_logger)
+    
+    try:
+        log_file = config['Logging']['logFile']
+    except Exception:
+        logging.error('no log file set in config')
+        log_file = 'das.log'
+    file_log = logging.FileHandler(log_file)
+    file_log.setLevel(log_level)
+    file_log.setFormatter(log_format)
+    logger.addHandler(file_log)
