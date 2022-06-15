@@ -28,7 +28,7 @@ def setup_logging(args, config):
     if args.debug:
         logger.setLevel(logging.DEBUG)
     else:
-        logger.setLevel(log_level)
+        logger.setLevel(logging.WARNING)
 
     if not args.silent:
         console_logger = logging.StreamHandler()
