@@ -38,6 +38,7 @@ def _setup_argparser():
     parser.add_argument('-V', '--version', action='version', version='{} {}'.format(PROGRAM_NAME, PROGRAM_VERSION))
     parser.add_argument('-d', '--debug', action='store_true', default=False, help='print debug messages')
     parser.add_argument('-D', '--day_threshold', help='inactivity of this many days [default: 365]', default='365')
+    parser.add_argument('-s', '--silent', action='store_true', default=False, help='disable console output')
     return parser.parse_args()
 
 

@@ -22,11 +22,16 @@ from helper.rooms import get_room_names
 TEN_GB = 1024*1024*1024*10
 
 
+async def user_has_no_home_folder(cloud, user_id):
+    user = await cloud.users.get_user(user_id=user_id)
+    return user.homeRoomId is None
+
+
 async def get_users_without_personal_rooms(cloud, root_room_id, users):
     rooms = await get_room_names(cloud, root_room_id)
     users_without_room = list()
     for user in users.items:
-        if normalize_username(user.userInfo.userName) not in rooms:
+        if normalize_username(user.userInfo.userName) not in rooms and await user_has_no_home_folder(cloud, user.userInfo.id):
             users_without_room.append(user)
             logging.debug('{} ({}) has no room'.format(user.userInfo.userName, user.userInfo.id))
     return users_without_room

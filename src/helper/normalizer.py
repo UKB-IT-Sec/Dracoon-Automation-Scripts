@@ -14,7 +14,10 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 '''
 
+import logging
+
 
 def normalize_username(name):
     name = name.split('\\')[-1].split('@')[0]
+    logging.debug("Normalized ID = {}".format(name))
     return name
